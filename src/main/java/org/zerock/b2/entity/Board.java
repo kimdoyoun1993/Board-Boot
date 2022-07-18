@@ -1,12 +1,11 @@
 package org.zerock.b2.entity;
 
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "t_board")
@@ -14,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Getter
-@ToString
+@ToString(exclude = "boardImages") //N+1 해결하기 위해
 public class Board extends BaseEntity{
 
     @Id
@@ -37,6 +36,21 @@ public class Board extends BaseEntity{
     }
     public void changeContent(String content){
         this.content = content;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY , cascade = CascadeType.ALL , orphanRemoval = true)
+    @JoinColumn(name = "board")
+    @Builder.Default //자료구조를 반환할때 null값을 체크안해주게 만들어주기
+    @BatchSize(size = 100)
+    private Set<BoardImage> boardImages = new HashSet<>();
+
+    //이미지를 추가
+    public void addImage(BoardImage boardImage){
+
+        //처음에 들어갈때 size가 0번으로 들어간다
+        boardImage.fixOrd(boardImages.size());
+        boardImages.add(boardImage);
+
     }
 
 }
