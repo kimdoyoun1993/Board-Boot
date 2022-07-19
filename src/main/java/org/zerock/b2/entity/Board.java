@@ -38,10 +38,9 @@ public class Board extends BaseEntity{
         this.content = content;
     }
 
-    @OneToMany(fetch = FetchType.LAZY , cascade = CascadeType.ALL , orphanRemoval = true)
-    @JoinColumn(name = "board")
-    @Builder.Default //자료구조를 반환할때 null값을 체크안해주게 만들어주기
+    @ElementCollection(fetch = FetchType.LAZY)
     @BatchSize(size = 100)
+    @Builder.Default //자료구조를 반환할때 null값을 체크안해주게 만들어주기
     private Set<BoardImage> boardImages = new HashSet<>();
 
     //이미지를 추가

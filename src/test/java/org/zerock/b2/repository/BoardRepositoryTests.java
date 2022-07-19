@@ -26,6 +26,15 @@ public class BoardRepositoryTests {
 
     @Transactional
     @Test
+    public void testWithImage(){
+
+        Pageable pageable = PageRequest.of(0,10,Sort.by("bno").descending());
+
+        repository.searchWithImage(null,null,pageable);
+    }
+
+    @Transactional
+    @Test
     public void testWithQuery(){
 
         Pageable pageable = PageRequest.of(0,10,Sort.by("bno").descending());
@@ -126,9 +135,7 @@ public class BoardRepositoryTests {
             //게시물 하나당 이미지 2개씩 추가
             for (int j = 0; j < 2; j++) {
                 BoardImage boardImage = BoardImage.builder()
-                        .uuid(UUID.randomUUID().toString())
-                        .fileName(i+"aaa.jpg")
-                        .img(true)
+                        .fileLink(i+"aaa.jpg")
                         .build();
                 board.addImage(boardImage); //관리의 주체가 board기 때문에 board에 추가해주어야한다
             }//image

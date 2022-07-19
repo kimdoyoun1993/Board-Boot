@@ -1,6 +1,7 @@
 package org.zerock.b2.repository.search;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.log4j.Log4j2;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.zerock.b2.dto.BoardListReplyCountDTO;
 import org.zerock.b2.entity.Board;
 import org.zerock.b2.entity.QBoard;
+import org.zerock.b2.entity.QBoardImage;
 import org.zerock.b2.entity.QReply;
 
 import java.util.List;
@@ -20,6 +22,7 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
 
 
     public BoardSearchImpl() {
+
         super(Board.class);
     }
 
@@ -109,5 +112,63 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
 
 
         return new PageImpl<>(list,pageable,totalCount);
+    }
+
+    @Override
+    public Page<Board> searchWithImage(String[] types, String keyword, Pageable pageable) {
+        log.info("===========================");
+        log.info("===========================");
+
+        QBoard board = QBoard.board;
+        QBoardImage boardImage = QBoardImage.boardImage;
+
+        JPQLQuery<Board> query = from(board);
+        //boardImage 를 직접 참조하는것이 아닌 board.boardImages 를 참조하고 , 후 boardImage 로 보겠다
+        //boardImage 가 아닌 board.boardImages 를 참조하는 방식은 on 조건을 안해줘도 된다
+        query.leftJoin(board.boardImages , boardImage);
+
+        //query.where(boardImage.ord.eq(0));
+
+        query.groupBy(board); //countDistinct -> count 를 해주면 groupBy 를 해주어야한다 안 해주면 하나의 덩어리로 봄
+
+        this.getQuerydsl().applyPagination(pageable,query);
+
+        List<Board> list = query.fetch();
+
+        JPQLQuery<Tuple> tupleJPQLQuery =
+                query.select(board,boardImage , boardImage.countDistinct()); //countDistinct() 는 중복된 값은 안 가져온다
+
+        //결과는 List 로 나온다
+        List<Tuple> tupleList = tupleJPQLQuery.fetch();
+
+        tupleList.forEach(tuple -> {
+             //오브젝트의 배열로 변환
+            Object[] arr = tuple.toArray();
+
+            log.info(arr[0]);//Board 가 나온다
+            log.info(arr[1]);//BoardImage 가 나온다
+            log.info(arr[2]);//boardImage.countDistinct() 가 나온다
+            log.info("====================================");
+
+        });
+
+
+//       //2번 게시물에 속한 모든 이미지를 다 가져오는 경우
+//       //group by
+//       query.groupBy(board);
+//
+//      //페이징
+//      this.getQuerydsl().applyPagination(pageable,query);
+//
+//        //조인 과 페이징이 되는지 확인해봐야 한다
+//        List<Board> list = query.fetch();
+//
+//        list.forEach(board1 -> {
+//            log.info(board1.getBno()+":"+board1.getTitle());
+//            log.info(board1.getBoardImages());
+//        });
+
+        log.info("===========================");
+        return null;
     }
 }

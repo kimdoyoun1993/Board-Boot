@@ -13,4 +13,6 @@ public interface BoardSearch {
     Page<Board> searchAll(String[] types, String keyword, Pageable pageable);
 
     Page<BoardListReplyCountDTO> searchWithreplyCount(String[] type , String keyword , Pageable pageable);
+
+    Page<Board> searchWithImage(String[] types, String keyword, Pageable pageable);
 }
