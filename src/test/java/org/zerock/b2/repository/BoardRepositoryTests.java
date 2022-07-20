@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.zerock.b2.dto.BoardListReplyCountDTO;
+import org.zerock.b2.dto.BoardListWithImageDTO;
 import org.zerock.b2.entity.Board;
 import org.zerock.b2.entity.BoardImage;
 
@@ -30,7 +31,11 @@ public class BoardRepositoryTests {
 
         Pageable pageable = PageRequest.of(0,10,Sort.by("bno").descending());
 
-        repository.searchWithImage(null,null,pageable);
+       Page<BoardListWithImageDTO> result = repository.searchWithImage(null,null, pageable);
+
+       result.getContent().forEach(boardListWithImageDTO -> {
+           log.info(boardListWithImageDTO);
+       });
     }
 
     @Transactional

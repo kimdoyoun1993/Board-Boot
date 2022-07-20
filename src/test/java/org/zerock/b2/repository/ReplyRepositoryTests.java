@@ -20,19 +20,24 @@ public class ReplyRepositoryTests {
     ReplyRepository replyRepository;
 
     @Test
-    public void testInsert() {
+    public void testInsert2() {
 
-        Board board = Board.builder().bno(105).build();
+        for (int i = 1; i <= 20; i++) {
 
-        for (int i = 0; i < 100; i++) {
-            Reply reply = Reply.builder()
-                    .board(board)
-                    .replyText(i + "100번의 댓글")
-                    .replyer("replyer00")
-                    .build();
+            Board board = Board.builder().bno(i).build();
 
-            replyRepository.save(reply);
-        }//end for
+            int count = i%5;
+
+            for(int j = 0; j < count ; j++){
+
+                Reply reply = Reply.builder()
+                        .board(board)
+                        .replyText(i+"--"+"댓글")
+                        .replyer("user00")
+                        .build();
+                replyRepository.save(reply);
+            }//end for j
+        }//end for i
     }
 
     @Test

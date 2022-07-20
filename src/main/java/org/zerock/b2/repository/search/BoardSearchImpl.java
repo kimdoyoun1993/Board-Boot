@@ -10,11 +10,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.zerock.b2.dto.BoardListReplyCountDTO;
+import org.zerock.b2.dto.BoardListWithImageDTO;
 import org.zerock.b2.entity.Board;
 import org.zerock.b2.entity.QBoard;
 import org.zerock.b2.entity.QBoardImage;
 import org.zerock.b2.entity.QReply;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Log4j2
@@ -115,19 +117,41 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
     }
 
     @Override
-    public Page<Board> searchWithImage(String[] types, String keyword, Pageable pageable) {
+    public Page<BoardListWithImageDTO> searchWithImage(String[] types, String keyword, Pageable pageable) {
         log.info("===========================");
         log.info("===========================");
 
         QBoard board = QBoard.board;
         QBoardImage boardImage = QBoardImage.boardImage;
+        QReply reply = QReply.reply;
 
         JPQLQuery<Board> query = from(board);
         //boardImage 를 직접 참조하는것이 아닌 board.boardImages 를 참조하고 , 후 boardImage 로 보겠다
         //boardImage 가 아닌 board.boardImages 를 참조하는 방식은 on 조건을 안해줘도 된다
         query.leftJoin(board.boardImages , boardImage);
+        query.leftJoin(reply).on(reply.board.eq(board));
 
         //query.where(boardImage.ord.eq(0));
+
+        //검색 조건인 types 가 not null 이고 keyword 가 not null 이면
+        if(types != null && keyword != null){
+
+            BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+            Arrays.stream(types).forEach(t -> {
+                if(t.equals("t")){
+                    booleanBuilder.or(board.title.contains(keyword));
+                }else if(t.equals("w")){
+                    booleanBuilder.or(board.writer.contains(keyword));
+                }else if(t.equals("c")){
+                    booleanBuilder.or(board.content.contains(keyword));
+                }
+            });
+                query.where(booleanBuilder);
+        }//end if
+
+        query.where(board.bno.gt(0)); //인덱스 타기
+        query.where(boardImage.ord.goe(0)); // 인덱스 타기 ord 가 0 인 값을 찾는
 
         query.groupBy(board); //countDistinct -> count 를 해주면 groupBy 를 해주어야한다 안 해주면 하나의 덩어리로 봄
 
@@ -135,22 +159,24 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
 
         List<Board> list = query.fetch();
 
-        JPQLQuery<Tuple> tupleJPQLQuery =
-                query.select(board,boardImage , boardImage.countDistinct()); //countDistinct() 는 중복된 값은 안 가져온다
+        JPQLQuery<BoardListWithImageDTO> tupleJPQLQuery =
+                query.select(
+                        Projections.bean(BoardListWithImageDTO.class,
+                        board.bno,
+                        board.title,
+                        board.writer,
+                        board.regDate,
+                        boardImage.fileLink.as("imgPath") ,
+                        reply.countDistinct().as("replyCount"),
+                        boardImage.countDistinct().as("imgCount")
+
+                        )
+                ); //countDistinct() 는 중복된 값은 안 가져온다
 
         //결과는 List 로 나온다
-        List<Tuple> tupleList = tupleJPQLQuery.fetch();
+        List<BoardListWithImageDTO> dtoList = tupleJPQLQuery.fetch();
 
-        tupleList.forEach(tuple -> {
-             //오브젝트의 배열로 변환
-            Object[] arr = tuple.toArray();
-
-            log.info(arr[0]);//Board 가 나온다
-            log.info(arr[1]);//BoardImage 가 나온다
-            log.info(arr[2]);//boardImage.countDistinct() 가 나온다
-            log.info("====================================");
-
-        });
+        long totalCount = tupleJPQLQuery.fetchCount();
 
 
 //       //2번 게시물에 속한 모든 이미지를 다 가져오는 경우
@@ -169,6 +195,6 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
 //        });
 
         log.info("===========================");
-        return null;
+        return new PageImpl<>(dtoList,pageable,totalCount);
     }
 }
