@@ -52,4 +52,10 @@ public class Board extends BaseEntity{
 
     }
 
+    //새로운 이미지를 넣는다는건 기존 이미지를 지우고 업로드 하는 개념이기에 clear<삭제>를 해준다
+    public void clearImages(){
+
+        boardImages.clear();
+    }
+
 }

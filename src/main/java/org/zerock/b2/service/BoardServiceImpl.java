@@ -7,10 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.zerock.b2.dto.BoardDTO;
-import org.zerock.b2.dto.BoardListReplyCountDTO;
-import org.zerock.b2.dto.PageRequestDTO;
-import org.zerock.b2.dto.PageResponseDTO;
+import org.zerock.b2.dto.*;
 import org.zerock.b2.entity.Board;
 import org.zerock.b2.repository.BoardRepository;
 
@@ -71,19 +68,19 @@ public class BoardServiceImpl implements BoardService{
     }
 
     @Override
-    public PageResponseDTO<BoardListReplyCountDTO> list(PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<BoardListWithImageDTO> list(PageRequestDTO pageRequestDTO) {
 
         String[] types = pageRequestDTO.getTypes();
         String keyword = pageRequestDTO.getKeyword();
         Pageable pageable = pageRequestDTO.getPageable("bno");
 
-        Page<BoardListReplyCountDTO> result = boardRepository.searchWithreplyCount(types, keyword, pageable);
+        Page<BoardListWithImageDTO> result = boardRepository.searchWithImage(types, keyword, pageable);
 
         List<BoardDTO> dtoList = result.getContent().stream()
                 .map(board -> modelMapper.map(board,BoardDTO.class)).collect(Collectors.toList());
 
 
-        return PageResponseDTO.<BoardListReplyCountDTO>withAll()
+        return PageResponseDTO.<BoardListWithImageDTO>withAll()
                 .pageRequestDTO(pageRequestDTO)
                 .dtoList(result.toList())
                 .total((int)result.getTotalElements())

@@ -59,6 +59,7 @@
                         <tr th:each="dto:${responseDTO.dtoList}"  >
                             <th scope="row">[[${dto.bno}]]</th>
                             <td>
+                                <img th:if="${dto.imgPath != null}" th:src="${dto.imgPath}">
                                 <a th:href="|@{/board/read(bno =${dto.bno})}&${link}|"> [[${dto.title}]]  <b>[ [[${dto.replyCount}]] ]</b> </a>
                             </td>
                             <td>[[${dto.writer}]]</td>

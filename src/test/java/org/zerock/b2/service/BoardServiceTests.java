@@ -4,10 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.zerock.b2.dto.BoardDTO;
-import org.zerock.b2.dto.BoardListReplyCountDTO;
-import org.zerock.b2.dto.PageRequestDTO;
-import org.zerock.b2.dto.PageResponseDTO;
+import org.zerock.b2.dto.*;
 
 @SpringBootTest
 @Log4j2
@@ -41,7 +38,7 @@ public class BoardServiceTests {
                 .size(10)
                 .build();
 
-        PageResponseDTO<BoardListReplyCountDTO> responseDTO = boardService.list(pageRequestDTO);
+        PageResponseDTO<BoardListWithImageDTO> responseDTO = boardService.list(pageRequestDTO);
 
         log.info(responseDTO);
 

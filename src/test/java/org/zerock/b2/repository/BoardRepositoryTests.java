@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import org.zerock.b2.dto.BoardListReplyCountDTO;
 import org.zerock.b2.dto.BoardListWithImageDTO;
@@ -176,5 +177,27 @@ public class BoardRepositoryTests {
 
         log.info(board);
 
+    }
+
+
+    @Transactional
+    @Commit
+    @Test
+    public void testUpdateImage(){
+
+        Board board = repository.getById(20);
+
+        board.changeTitle("제목 수정.....20");
+
+        board.clearImages();
+
+        for (int i = 0; i < 3; i++) {
+
+            BoardImage boardImage = BoardImage.builder()
+                    .fileLink("aaa"+i+"jpg")
+                    .build();
+            board.addImage(boardImage);
+        }
+        repository.save(board);
     }
 }
